@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+<bean id="streamingForComment" class="com.weibo.wejoy.firehose.receiver.impl.GroupCommentReceiver" >
+<property name="curStreamURLIndex" value="0" />
+<property name="streamingURLList">
+<list>
+<value>http://10.75.5.83:8082/comet?appid=msn&amp;filter=grp_comment,*</value>
+</list>
+</property>
+</bean>
+
+<bean id="streamingForGroupChange" class="com.weibo.wejoy.firehose.receiver.impl.GroupChangeReceiver" >
+<property name="curStreamURLIndex" value="0" />
+<property name="streamingURLList">
+<list>
+<value>http://10.210.230.46:8930/comet?appid=msn&amp;filter=user_group,*</value>
+</list>
+</property>
+</bean>
+
+<bean id="streamingForRelationChange" class="com.weibo.wejoy.firehose.receiver.impl.RelationChangeReceiver" >
+<property name="curStreamURLIndex" value="0" />
+<property name="streamingURLList">
+<list>
+<value>http://firehose2.i.api.weibo.com:8082/comet?appid=msn&amp;filter=user,unfollow</value>
+</list>
+</property>
+</bean>
+<!-- init-method="init"  -->
+
+ <bean id="streamingForStatus" class="com.weibo.wejoy.firehose.receiver.impl.GroupStatusReceiver" >
+  <property name="curStreamURLIndex" value="0" />
+  <property name="streamingURLList">
+  	<list>
+	<value>http://10.75.5.82:8082/comet?appid=msn&amp;filter=grp_status,add</value>
+	</list>
+  </property>  
+ </bean> 
+
+
+<bean id="weiju_db_config"
+class="com.mchange.v2.c3p0.ComboPooledDataSource" abstract="true">
+<property name="driverClass"><value>com.mysql.jdbc.Driver</value></property>
+<property name="idleConnectionTestPeriod"><value>25</value></property>
+<property name="minPoolSize"><value>2</value></property>
+<property name="maxPoolSize"><value>10</value></property>
+<property name="maxIdleTime"><value>300</value></property>
+<property name="breakAfterAcquireFailure"><value>false</value></property>
+<property name="checkoutTimeout"><value>6000</value></property>
+<property name="acquireRetryAttempts"><value>30</value></property>
+<property name="acquireRetryDelay"><value>1000</value></property>
+<property name="maxConnectionAge"><value>600</value></property>
+</bean>
+<bean id="weijudbConf" parent="weiju_db_config">
+<property
+name="jdbcUrl"><value>jdbc:mysql://10.55.45.232?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true</value></property>
+<property name="user"><value>weiju_test</value></property>
+<property name="password"><value>weiju_test</value></property>
+</bean>
+
+<bean id="weijuJdbc"
+class="cn.sina.api.data.dao.util.JdbcTemplate">
+<property name="dataSource" ref="weijudbConf"/>
+</bean>
+
+<!--  
+<bean id="list2GroupDao" class="com.weibo.wejoy.group.dao.impl.OriList2GroupDaoImpl">
+<property name="tempJdbc" ref="weijuJdbc"/>
+</bean>
+-->
+
+<bean id="registerDao" class="com.weibo.wejoy.group.dao.impl.RegisterDaoImpl">
+<property name="tempJdbc" ref="weijuJdbc"/>
+</bean>
+
+
+
+<bean id="memCacheStorage"  class="cn.sina.api.data.storage.cache.MemCacheStorage" >
+		   		<property name="cacheClientMaster">
+		   			 <bean class="cn.sina.api.commons.cache.driver.VikaCacheClient" init-method="init">
+						<property name="minSpareConnections" value="2" />
+      				    <property name="maxSpareConnections" value="10" />
+        			 	<property name="compressEnable" value="false" />
+        				<property name="serverPort" value="172.16.89.69:11211" /> 
+		  			 </bean> 
+		   		</property>
+		   		<property name="cacheClientSlave">
+		   			 <bean class="cn.sina.api.commons.cache.driver.VikaCacheClient" init-method="init">
+						<property name="minSpareConnections" value="2" />
+      				    <property name="maxSpareConnections" value="10" />
+        			 	<property name="compressEnable" value="false" />
+        				<property name="serverPort" value="172.16.89.69:11211" /> 
+		  			 </bean> 
+		   		</property> 
+		    </bean>
+
+</beans> 
